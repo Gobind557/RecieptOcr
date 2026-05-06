@@ -1,59 +1,279 @@
-# Receipt Parser
+# ReceiptOCR
 
-## What did you build?
+AI-assisted receipt extraction with human verification workflows.
 
-I built a full-stack web application designed for fast, human-in-the-loop receipt parsing. It consists of a React frontend and a Node.js/Express backend that utilizes Google Gemini Flash to extract structured data from uploaded receipt images. The philosophy is "AI assists first, human verifies second." The backend uses SQLite to persistently store the receipts and line items. The core product experience focuses on the correction UX—surfacing heuristic uncertainty, flagging suspicious fields with subtle UI warnings, and ensuring that any incorrect extraction can be frictionlessly edited inline by a human before saving.
+The product is intentionally designed around:
 
-## Biggest tradeoffs?
+> “AI assists first, human verifies second.”
 
-- **Gemini Flash over a dedicated OCR solution**: This choice prioritizes latency, iteration speed, and cost. Since perfect extraction isn't expected and human review is required, Gemini Flash provides a good enough baseline without the complexity of a multi-stage OCR pipeline.
-- **SQLite over PostgreSQL**: SQLite is intentionally simple, lightweight, and requires no external orchestration (like Docker). It perfectly handles the scoped requirement of saving corrected receipts locally.
-- **Heuristic Confidence**: The model's confidence is heuristic. The UI honestly reflects this uncertainty to guide human attention rather than pretending to provide mathematical precision.
-- **Intentionally Scoped Backend**: The backend serves specific, clear endpoints without overengineering (no microservices, Kafka, or auth layers).
+Instead of optimizing for perfect OCR accuracy, the system focuses on:
+- fast correction workflows
+- visible uncertainty
+- defensive parsing
+- trust-aware UX
 
-## Where did you use LLMs?
+---
 
-- Used AI for generating the underlying component boilerplate and layout scaffolding.
-- Wrote the validation rules (Zod) and backend normalization logic manually to strictly enforce the schema and defensive behavior.
-- Iterated heavily on the Gemini prompt using AI to handle complex cases and guide the model towards outputting the precise JSON required.
+# Features
 
-## What would you do with another week?
+- Receipt image upload (JPG/PNG)
+- AI-powered extraction using Gemini Flash
+- Editable review workflow
+- Inline correction for extracted fields
+- “Needs Review” highlighting
+- SQLite persistence
+- Saved receipts view
+- Zod-based validation
 
-- Implement a hybrid pipeline utilizing dedicated OCR (e.g., Tesseract or a specialized cloud service) paired with the LLM to improve baseline accuracy.
-- Improve confidence scoring mechanics, potentially by calculating bounding box alignments or cross-referencing values explicitly.
-- Add background processing for batch receipt uploads.
-- Build benchmarking datasets to continuously evaluate extraction quality against edge cases (blurry, faded, or handwritten receipts).
-- Implement image preprocessing (contrast enhancement, deskewing) on the frontend or backend to feed better images to the LLM.
+---
 
-## What would you push back on as PM?
+# Architecture Overview
 
-- **Single-pass LLM extraction reliability**: I would push back against relying solely on an LLM for final truth without a mandatory human review step. Receipts are inherently ambiguous, and extraction will fail gracefully but frequently on poor-quality images.
-- **Line item semantics**: I would push back to clarify exactly what constitutes a line item versus an adjustment. Many receipts embed taxes or service fees within line items; keeping them separate is a crucial but complex constraint.
-- **Perfect automation**: I would advocate strongly that "AI assists first, human verifies second" is the core feature and resist pressure to make the app "zero-touch" too early in the product lifecycle.
+```txt
+React + TypeScript Frontend
+            ↓
+Express + TypeScript API
+            ↓
+Gemini Flash Extraction
+            ↓
+Zod Validation + Normalization
+            ↓
+SQLite Persistence
+```
 
-## Setup Instructions
+---
 
-1. Clone the repository.
-2. Ensure you have Node.js installed.
-3. Add your Gemini API Key:
-   ```bash
-   cp .env.example .env
-   # Add your GEMINI_API_KEY to .env
-   ```
-4. Install dependencies:
-   ```bash
-   npm install
-   cd client && npm install
-   cd ../server && npm install
-   ```
-5. Start the application:
-   ```bash
-   # From the root directory (assuming concurrent scripts are set up, or run in two terminals):
-   # Terminal 1: Backend
-   cd server
-   npm run dev
-   
-   # Terminal 2: Frontend
-   cd client
-   npm run dev
-   ```
+# Extraction Workflow
+
+1. User uploads a receipt image  
+2. Backend sends image to Gemini Flash  
+3. LLM returns structured receipt data  
+4. Response is validated + normalized using Zod  
+5. User reviews highlighted fields  
+6. Corrected receipt is saved to SQLite  
+
+---
+
+# Confidence & Review Heuristics
+
+The app intentionally avoids pretending extraction is perfectly reliable.
+
+Instead of fake precision percentages, fields are marked using:
+- High Confidence
+- Medium Confidence
+- Needs Review
+
+Fields are flagged when:
+- totals don’t match arithmetic
+- values are missing
+- dates appear malformed
+- line items look suspicious
+
+The UI is designed to guide human attention toward likely extraction mistakes.
+
+---
+
+# Defensive Parsing Strategy
+
+LLM output is treated as untrusted input.
+
+All responses are:
+- schema validated using Zod
+- normalized before persistence
+- rejected gracefully if malformed
+
+Possible failures handled:
+- blurry receipts
+- malformed JSON
+- incomplete extraction
+- unusual receipt layouts
+
+Users remain in control through inline correction.
+
+---
+
+# Line Item Semantics
+
+Line items are treated as:
+
+> actual purchased products/services.
+
+The following are intentionally modeled separately:
+- subtotal
+- taxes
+- discounts
+- tips
+- service fees
+
+This keeps transactional items separate from payment adjustments.
+
+---
+
+# Model Choice
+
+Gemini Flash was chosen because it balanced:
+- low latency
+- low cost
+- multimodal support
+- fast iteration speed
+
+The project prioritizes:
+- responsiveness
+- correction UX
+- trust
+
+over maximizing raw OCR precision.
+
+---
+
+# Tradeoffs
+
+### SQLite over PostgreSQL
+
+Chosen for simplicity and local setup speed.
+
+### Single-stage extraction
+
+Current flow:
+
+```txt
+image → Gemini → structured JSON
+```
+
+instead of:
+
+```txt
+OCR → preprocessing → extraction pipeline
+```
+
+This keeps the MVP lightweight and focused.
+
+### Heuristic confidence
+
+Confidence states are intentionally heuristic rather than probabilistic.
+
+---
+
+# Production Considerations
+
+If scaled further, the system would evolve toward:
+- PostgreSQL
+- object storage for images
+- async extraction queues
+- background workers
+- Redis caching/rate limiting
+- OCR + LLM hybrid extraction
+- observability/logging
+
+---
+
+# Known Limitations
+
+- Confidence scoring is heuristic
+- Multi-language receipts are not deeply optimized
+- Highly distorted receipts may require manual correction
+- SQLite is intentionally scoped for local persistence
+
+---
+
+# What I Would Improve With Another Week
+
+- OCR + LLM hybrid pipeline
+- image preprocessing
+- extraction benchmarking
+- better confidence heuristics
+- async extraction workers
+- duplicate receipt detection
+
+Priority would remain:
+
+> improving extraction reliability and correction UX.
+
+---
+
+# PM Pushback / Product Observations
+
+One major ambiguity is:
+
+> what exactly counts as a “line item.”
+
+Receipts frequently mix:
+- purchased items
+- taxes
+- discounts
+- service fees
+
+Another important observation:
+
+> confidence UX matters more than perfect extraction.
+
+Users are willing to correct AI output if:
+- suspicious fields are surfaced clearly
+- editing is fast
+- the workflow feels trustworthy
+
+---
+
+# AI Usage Disclosure
+
+LLMs were used for:
+- scaffolding
+- prompt iteration
+- UI refinement
+- implementation acceleration
+
+However:
+- validation logic
+- correction workflow decisions
+- confidence heuristics
+- defensive parsing strategy
+- tradeoff reasoning
+
+were intentionally designed manually.
+
+---
+
+# Tech Stack
+
+Frontend:
+- React
+- TypeScript
+- Vite
+
+Backend:
+- Node.js
+- Express
+- TypeScript
+
+AI:
+- Gemini Flash
+
+Validation:
+- Zod
+
+Database:
+- SQLite
+
+---
+
+# Setup Instructions
+
+## Install
+
+```bash
+npm run install:all
+```
+
+## Configure Environment
+
+Create `.env`
+
+```env
+GEMINI_API_KEY=your_api_key
+```
+
+## Run
+
+```bash
+npm run dev
+```
