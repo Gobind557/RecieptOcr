@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
   Save, Trash2, Plus, ArrowLeft, 
   AlertCircle, CheckCircle2, Calculator 
 } from 'lucide-react';
-import { Receipt, LineItem } from '../types';
+import type { Receipt, LineItem } from '../types';
 import { api } from '../api';
 import { UncertainHighlight } from './UncertainHighlight';
 

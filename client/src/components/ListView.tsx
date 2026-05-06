@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { api } from '../api';
-import { Receipt } from '../types';
+import type { Receipt } from '../types';
 import { 
   FileText, Calendar, DollarSign, 
-  ChevronRight, Search, Receipt as ReceiptIcon,
+  ChevronRight, Receipt as ReceiptIcon,
   Clock
 } from 'lucide-react';
 

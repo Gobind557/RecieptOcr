@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { UploadView } from './components/UploadView';
 import { ReviewView } from './components/ReviewView';
 import { ListView } from './components/ListView';
-import { Receipt } from './types';
-import { Layout, Receipt as ReceiptIcon, List, Upload } from 'lucide-react';
+import type { Receipt } from './types';
+import { Receipt as ReceiptIcon, List, Upload } from 'lucide-react';
 
 type View = 'upload' | 'review' | 'list';
 

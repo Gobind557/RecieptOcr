@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { Upload, FileType, Loader2, AlertTriangle } from 'lucide-react';
 import { api } from '../api';
-import { Receipt } from '../types';
+import type { Receipt } from '../types';
 
 interface Props {
   onSuccess: (receipt: Receipt) => void;
