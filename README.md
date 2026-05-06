@@ -2,11 +2,11 @@
 
 ## What did you build?
 
-I built a full-stack web application designed for fast, human-in-the-loop receipt parsing. It consists of a React frontend and a Node.js/Express backend that utilizes OpenAI's GPT-4o-mini to extract structured data from uploaded receipt images. The philosophy is "AI assists first, human verifies second." The backend uses SQLite to persistently store the receipts and line items. The core product experience focuses on the correction UX—surfacing heuristic uncertainty, flagging suspicious fields with subtle UI warnings, and ensuring that any incorrect extraction can be frictionlessly edited inline by a human before saving.
+I built a full-stack web application designed for fast, human-in-the-loop receipt parsing. It consists of a React frontend and a Node.js/Express backend that utilizes Google Gemini Flash to extract structured data from uploaded receipt images. The philosophy is "AI assists first, human verifies second." The backend uses SQLite to persistently store the receipts and line items. The core product experience focuses on the correction UX—surfacing heuristic uncertainty, flagging suspicious fields with subtle UI warnings, and ensuring that any incorrect extraction can be frictionlessly edited inline by a human before saving.
 
 ## Biggest tradeoffs?
 
-- **GPT-4o-mini over a dedicated OCR solution**: This choice prioritizes latency, iteration speed, and cost. Since perfect extraction isn't expected and human review is required, GPT-4o-mini provides a good enough baseline at a fraction of the cost and complexity of a multi-stage OCR pipeline.
+- **Gemini Flash over a dedicated OCR solution**: This choice prioritizes latency, iteration speed, and cost. Since perfect extraction isn't expected and human review is required, Gemini Flash provides a good enough baseline without the complexity of a multi-stage OCR pipeline.
 - **SQLite over PostgreSQL**: SQLite is intentionally simple, lightweight, and requires no external orchestration (like Docker). It perfectly handles the scoped requirement of saving corrected receipts locally.
 - **Heuristic Confidence**: The model's confidence is heuristic. The UI honestly reflects this uncertainty to guide human attention rather than pretending to provide mathematical precision.
 - **Intentionally Scoped Backend**: The backend serves specific, clear endpoints without overengineering (no microservices, Kafka, or auth layers).
@@ -15,7 +15,7 @@ I built a full-stack web application designed for fast, human-in-the-loop receip
 
 - Used AI for generating the underlying component boilerplate and layout scaffolding.
 - Wrote the validation rules (Zod) and backend normalization logic manually to strictly enforce the schema and defensive behavior.
-- Iterated heavily on the OpenAI prompt using AI to handle complex cases and guide the model towards outputting the precise JSON required.
+- Iterated heavily on the Gemini prompt using AI to handle complex cases and guide the model towards outputting the precise JSON required.
 
 ## What would you do with another week?
 
@@ -35,10 +35,10 @@ I built a full-stack web application designed for fast, human-in-the-loop receip
 
 1. Clone the repository.
 2. Ensure you have Node.js installed.
-3. Add your OpenAI API Key:
+3. Add your Gemini API Key:
    ```bash
    cp .env.example .env
-   # Add your OPENAI_API_KEY to .env
+   # Add your GEMINI_API_KEY to .env
    ```
 4. Install dependencies:
    ```bash

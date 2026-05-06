@@ -7,9 +7,9 @@ import { getDb } from './db';
 import { ReceiptSchema, Receipt } from './types';
 import path from 'path';
 
-dotenv.config();
+dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
-import { parseReceiptImage } from './services/openai';
+import { parseReceiptImage } from './services/gemini';
 import fs from 'fs';
 
 const app = express();
@@ -27,11 +27,11 @@ app.post('/api/parse-receipt', upload.single('receipt'), async (req, res) => {
   try {
     let result;
     try {
-      result = await parseReceiptImage(req.file.path);
+      result = await parseReceiptImage(req.file.path, req.file.mimetype);
     } catch (parseError) {
       console.warn("Initial parse failed, retrying once...", parseError);
       // Simple retry logic
-      result = await parseReceiptImage(req.file.path);
+      result = await parseReceiptImage(req.file.path, req.file.mimetype);
     }
 
     // Map LLM output to our internal Receipt format
@@ -56,7 +56,7 @@ app.post('/api/parse-receipt', upload.single('receipt'), async (req, res) => {
 
     res.json(receipt);
   } catch (error) {
-    console.error("OpenAI Error:", error);
+    console.error("Gemini Error:", error);
     res.status(500).json({ 
       error: 'Failed to parse receipt. Please try a clearer image or enter data manually.',
       details: error instanceof Error ? error.message : String(error)

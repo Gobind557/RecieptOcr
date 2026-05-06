@@ -1,9 +1,9 @@
 import { useState } from 'react';
+import { ReceiptText } from 'lucide-react';
 import { UploadView } from './components/UploadView';
 import { ReviewView } from './components/ReviewView';
 import { ListView } from './components/ListView';
 import type { Receipt } from './types';
-import { Receipt as ReceiptIcon, List, Upload } from 'lucide-react';
 
 type View = 'upload' | 'review' | 'list';
 
@@ -26,64 +26,59 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f9fafb]">
-      {/* Navigation Header */}
-      <nav className="bg-white border-b border-gray-100 sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-          <div 
-            className="flex items-center gap-2 cursor-pointer group"
+    <div className="min-h-screen bg-slate-50 text-slate-900">
+      <nav className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur">
+        <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
+          <div
+            className="flex cursor-pointer items-center gap-2"
             onClick={() => setCurrentView('upload')}
           >
-            <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center text-white shadow-sm group-hover:scale-110 transition-transform">
-              <ReceiptIcon size={20} />
+            <div className="flex h-7 w-7 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-700 shadow-sm">
+              <ReceiptText size={16} />
             </div>
-            <span className="font-bold text-xl tracking-tight text-gray-800">RecieptOcr</span>
+            <span className="text-base font-semibold tracking-tight text-slate-900">ReceiptOCR</span>
           </div>
-          
-          <div className="flex items-center gap-6">
-            <button 
+
+          <div className="flex items-center gap-1">
+            <button
               onClick={() => setCurrentView('upload')}
-              className={`flex items-center gap-2 text-sm font-medium transition-colors ${currentView === 'upload' ? 'text-blue-600' : 'text-gray-500 hover:text-gray-800'}`}
+              className={`rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+                currentView === 'upload'
+                  ? 'bg-slate-100 text-slate-950'
+                  : 'text-slate-500 hover:text-slate-900'
+              }`}
             >
-              <Upload size={18} /> Upload
+              Upload Receipt
             </button>
-            <button 
+            <button
               onClick={() => setCurrentView('list')}
-              className={`flex items-center gap-2 text-sm font-medium transition-colors ${currentView === 'list' ? 'text-blue-600' : 'text-gray-500 hover:text-gray-800'}`}
+              className={`rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+                currentView === 'list'
+                  ? 'bg-slate-100 text-slate-950'
+                  : 'text-slate-500 hover:text-slate-900'
+              }`}
             >
-              <List size={18} /> My Receipts
+              My Receipts
             </button>
           </div>
         </div>
       </nav>
 
-      {/* Main Content Area */}
-      <main className="max-w-6xl mx-auto px-4 py-8">
-        {currentView === 'upload' && (
-          <UploadView onSuccess={handleParseSuccess} />
-        )}
-        
+      <main className="mx-auto max-w-6xl px-4 py-8">
+        {currentView === 'upload' && <UploadView onSuccess={handleParseSuccess} />}
+
         {currentView === 'review' && activeReceipt && (
-          <ReviewView 
-            receipt={activeReceipt} 
-            onBack={() => setCurrentView('upload')} 
+          <ReviewView
+            receipt={activeReceipt}
+            onBack={() => setCurrentView('upload')}
             onSave={handleSaveSuccess}
           />
         )}
 
         {currentView === 'list' && (
-          <ListView 
-            onSelect={handleSelectReceipt} 
-            onNew={() => setCurrentView('upload')}
-          />
+          <ListView onSelect={handleSelectReceipt} onNew={() => setCurrentView('upload')} />
         )}
       </main>
-
-      {/* Footer / Info */}
-      <footer className="mt-auto py-12 text-center text-gray-400 text-xs">
-        <p>© 2026 RecieptOcr — Built with GPT-4o-mini & SQLite</p>
-        <p className="mt-1">“AI assists first, human verifies second.”</p>
-      </footer>
     </div>
   );
 }

@@ -1,35 +1,42 @@
 import React from 'react';
-import { AlertCircle } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
 
 interface Props {
-  confidence: number;
+  confidence?: number;
   threshold?: number;
   children: React.ReactNode;
   label?: string;
 }
 
-export const UncertainHighlight: React.FC<Props> = ({ 
-  confidence, 
-  threshold = 0.8, 
+export const confidenceTone = (confidence?: number, threshold = 0.8) => {
+  if (confidence === undefined || confidence === null) return 'medium';
+  if (confidence < threshold) return 'low';
+  if (confidence < 0.92) return 'medium';
+  return 'high';
+};
+
+export const UncertainHighlight: React.FC<Props> = ({
+  confidence,
+  threshold = 0.8,
   children,
-  label 
+  label = 'Needs review',
 }) => {
-  const isUncertain = confidence < threshold;
+  const tone = confidenceTone(confidence, threshold);
+  const needsReview = tone === 'low';
 
   return (
-    <div className="relative group">
-      <div className={`
-        transition-all duration-200 rounded-md
-        ${isUncertain ? 'ring-2 ring-yellow-400/50 bg-yellow-50/50 p-1 -m-1' : ''}
-      `}>
+    <div className="relative">
+      <div
+        className={`rounded-md transition-colors ${
+          needsReview ? 'bg-amber-50 ring-1 ring-amber-200' : ''
+        }`}
+      >
         {children}
       </div>
-      {isUncertain && (
-        <div className="absolute -top-2 -right-2 hidden group-hover:block z-10">
-          <div className="bg-yellow-100 text-yellow-800 text-[10px] px-1.5 py-0.5 rounded shadow-sm border border-yellow-200 flex items-center gap-1">
-            <AlertCircle size={10} />
-            {label || 'Needs review'}
-          </div>
+      {needsReview && (
+        <div className="mt-1 inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">
+          <AlertTriangle size={12} />
+          {label}
         </div>
       )}
     </div>

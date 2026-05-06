@@ -1,11 +1,7 @@
 import React, { useEffect, useState } from 'react';
+import { Calendar, ChevronRight, Clock, FileText, Loader2, Plus } from 'lucide-react';
 import { api } from '../api';
 import type { Receipt } from '../types';
-import { 
-  FileText, Calendar, DollarSign, 
-  ChevronRight, Receipt as ReceiptIcon,
-  Clock
-} from 'lucide-react';
 
 interface Props {
   onSelect: (receipt: Receipt) => void;
@@ -15,17 +11,20 @@ interface Props {
 export const ListView: React.FC<Props> = ({ onSelect, onNew }) => {
   const [receipts, setReceipts] = useState<Receipt[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     loadReceipts();
   }, []);
 
   const loadReceipts = async () => {
+    setLoading(true);
+    setError(false);
     try {
       const data = await api.getReceipts();
       setReceipts(data);
-    } catch (err) {
-      console.error(err);
+    } catch {
+      setError(true);
     } finally {
       setLoading(false);
     }
@@ -35,103 +34,104 @@ export const ListView: React.FC<Props> = ({ onSelect, onNew }) => {
     try {
       const receipt = await api.getReceipt(id);
       onSelect(receipt);
-    } catch (err) {
-      console.error(err);
+    } catch {
+      setError(true);
     }
   };
 
   return (
-    <div className="max-w-4xl mx-auto py-8 px-4">
-      <div className="flex items-center justify-between mb-8">
+    <section className="mx-auto max-w-5xl">
+      <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h2 className="text-2xl font-bold text-gray-800">My Receipts</h2>
-          <p className="text-gray-500 text-sm mt-1">Manage and edit your saved receipt extractions</p>
+          <h1 className="text-2xl font-semibold tracking-tight text-slate-950">My Receipts</h1>
+          <p className="mt-1 text-sm text-slate-500">Open a saved receipt to review or correct it again.</p>
         </div>
-        <button 
+        <button
           onClick={onNew}
-          className="bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center gap-2 shadow-sm"
+          className="inline-flex items-center gap-2 rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-slate-700"
         >
-          <Plus size={18} /> New Receipt
+          <Plus size={16} />
+          New Receipt
         </button>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
         {loading ? (
-          <div className="p-12 text-center text-gray-400">Loading receipts...</div>
-        ) : receipts.length === 0 ? (
-          <div className="p-16 text-center">
-            <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-300">
-              <ReceiptIcon size={32} />
-            </div>
-            <h3 className="text-lg font-medium text-gray-700">No receipts yet</h3>
-            <p className="text-gray-500 text-sm mb-6">Upload your first receipt to get started</p>
-            <button 
-              onClick={onNew}
-              className="text-blue-600 font-medium hover:underline"
+          <div className="flex items-center justify-center gap-2 p-12 text-sm text-slate-500">
+            <Loader2 className="animate-spin" size={18} />
+            Loading receipts...
+          </div>
+        ) : error ? (
+          <div className="p-12 text-center">
+            <h2 className="text-sm font-medium text-slate-900">We could not load receipts.</h2>
+            <p className="mt-1 text-sm text-slate-500">Check the server connection and try again.</p>
+            <button
+              onClick={loadReceipts}
+              className="mt-4 rounded-md border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
             >
-              Upload now &rarr;
+              Retry
+            </button>
+          </div>
+        ) : receipts.length === 0 ? (
+          <div className="p-12 text-center">
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-slate-100 text-slate-500">
+              <FileText size={22} />
+            </div>
+            <h2 className="text-sm font-medium text-slate-900">No saved receipts yet</h2>
+            <p className="mt-1 text-sm text-slate-500">Upload a receipt and save it after review.</p>
+            <button
+              onClick={onNew}
+              className="mt-4 rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700"
+            >
+              Upload Receipt
             </button>
           </div>
         ) : (
-          <div className="divide-y divide-gray-50">
+          <div className="divide-y divide-slate-100">
             {receipts.map((receipt) => (
-              <div 
+              <button
                 key={receipt.id}
                 onClick={() => receipt.id && handleSelect(receipt.id)}
-                className="group p-6 hover:bg-gray-50/50 cursor-pointer transition-all flex items-center justify-between"
+                className="grid w-full grid-cols-1 gap-3 px-5 py-4 text-left transition-colors hover:bg-slate-50 sm:grid-cols-[1fr_150px_32px] sm:items-center"
               >
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <FileText size={24} />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-gray-800 group-hover:text-blue-600 transition-colors">
-                      {receipt.merchant || 'Unknown Merchant'}
-                    </h4>
-                    <div className="flex items-center gap-4 mt-1 text-sm text-gray-500">
-                      <span className="flex items-center gap-1">
-                        <Calendar size={14} /> {receipt.date || 'No date'}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Clock size={14} /> {receipt.createdAt ? new Date(receipt.createdAt).toLocaleDateString() : 'Unknown'}
-                      </span>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-500">
+                      <FileText size={18} />
+                    </div>
+                    <div className="min-w-0">
+                      <h2 className="truncate text-sm font-semibold text-slate-950">
+                        {receipt.merchant || 'Unknown Merchant'}
+                      </h2>
+                      <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-slate-500">
+                        <span className="inline-flex items-center gap-1">
+                          <Calendar size={13} />
+                          {receipt.date || 'No date'}
+                        </span>
+                        <span className="inline-flex items-center gap-1">
+                          <Clock size={13} />
+                          {receipt.createdAt
+                            ? new Date(receipt.createdAt).toLocaleDateString()
+                            : 'Unknown save date'}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-8">
-                  <div className="text-right">
-                    <div className="text-lg font-bold text-gray-900 flex items-center justify-end">
-                      <DollarSign size={16} />{receipt.total?.toFixed(2) || '0.00'}
-                    </div>
-                    <div className="text-[10px] text-gray-400 font-medium uppercase tracking-wider">
-                      {receipt.lineItems?.length || 0} items
-                    </div>
+
+                <div className="text-left sm:text-right">
+                  <div className="text-sm font-semibold text-slate-950">
+                    ${Number(receipt.total || 0).toFixed(2)}
                   </div>
-                  <ChevronRight size={20} className="text-gray-300 group-hover:text-blue-400 group-hover:translate-x-1 transition-all" />
+                  <div className="mt-1 text-xs text-slate-500">{receipt.lineItems?.length || 0} items</div>
                 </div>
-              </div>
+
+                <ChevronRight className="hidden text-slate-300 sm:block" size={18} />
+              </button>
             ))}
           </div>
         )}
       </div>
-    </div>
+    </section>
   );
 };
-
-const Plus = ({ className, size }: { className?: string, size?: number }) => (
-  <svg 
-    xmlns="http://www.w3.org/2000/svg" 
-    width={size} 
-    height={size} 
-    viewBox="0 0 24 24" 
-    fill="none" 
-    stroke="currentColor" 
-    strokeWidth="2" 
-    strokeLinecap="round" 
-    strokeLinejoin="round" 
-    className={className}
-  >
-    <line x1="12" y1="5" x2="12" y2="19" />
-    <line x1="5" y1="12" x2="19" y2="12" />
-  </svg>
-);
